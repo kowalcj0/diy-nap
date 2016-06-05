@@ -1,5 +1,5 @@
 DIY Audio Network Player
-------------------------------
+------------------------
 
 This document contains a list of instructions I followed to configure my ANP.
 
@@ -29,6 +29,15 @@ but I've decided to build something similar but with some extras.
 ```
 sudo ddrescue -D --force 2016-05-10-raspbian-jessie-lite.img /dev/mmcblk0
 ```
+
+
+# Expand filesystem size to the max size of your card
+
+```
+sudo raspi-config
+```
+Choose option `1 Expand Filesystem`
+
 
 # Enable HiFiBerry DAC+ Pro
 
