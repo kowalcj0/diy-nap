@@ -10,6 +10,7 @@ Hardware:
 * [Flirc USB IR receiver](https://flirc.tv/more/flirc-usb)
 * [7" IPS Display](https://www.adafruit.com/products/1931)
 * Custom build linear power supply with 4 outputs: 3x 5v 2A, 1x 9v 2a
+* An aluminium chassis with some CNC work [www.modushop.pl](http://www.modushop.pl/772,galaxy-gx288-3u-panel-3mm-czarny-1gx288n-3u-.html)
 
 Software:
 * [Raspbian Jessie Lite](https://www.raspberrypi.org/downloads/raspbian/)
@@ -477,13 +478,14 @@ elif event.code == 104:
 
 ## Install PiFi-Remote service
 
-When you're happy with you button mapping then simply install the package.
-This will create a new service, which state you can manage with standard
-`sudo service pifiremote start|stop|restart`
-
+When you're happy with your button mapping then simply install the package.
 ```
 cd ~/git/PiFi-Remote
 sudo ./setup.py install
+```
+This will create a new service, which state you can manage with standard
+```
+sudo service pifiremote start|stop|restart
 ```
 
 
