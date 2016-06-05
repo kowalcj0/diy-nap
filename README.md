@@ -1,4 +1,4 @@
-DYI Audio Network Player
+DIY Audio Network Player
 ------------------------------
 
 This document contains a list of instructions I followed to configure my ANP.
@@ -12,13 +12,14 @@ Hardware:
 * Custom build linear power supply with 4 outputs: 3x 5v 2A, 1x 9v 2a
 
 Software:
-* MPD
-* ncmpcpp
-* cava
-* PiFi-Remote
+* [MPD](https://www.musicpd.org/)
+* [ncmpcpp](http://rybczak.net/ncmpcpp/)
+* [C.A.V.A](http://karlstav.github.io/cava/)
+* [PiFi-Remote](https://github.com/kowalcj0/PiFi-Remote) a modified subset version of [pi.hifi](https://bitbucket.org/bertrandboichon/pi.hifi) by Bertrand Boichon
 
 btw. I've successfully used [volumio](https://volumio.org/) for a good while, 
 but I've decided to build something similar but with some extras.
+
 
 # Enable HiFiBerry DAC+ Pro
 
@@ -39,7 +40,8 @@ dtdebug=1
 # or simply user your SD card reader on your PC to edit that file
 
 
-create /etc/asound.conf with this code:
+# enable the card for ALSA
+# create /etc/asound.conf with this code:
 pcm.!default {
 type hw card 0
 }
@@ -48,8 +50,8 @@ type hw card 0
 }
 
 
+# blacklist onboard audio (this will disable it)
 sudo vim /etc/modprobe.d/raspi-blacklist.conf
-# and blacklist onboard audio
 blacklist snd_bcm2835
 
 # you can also blacklist any other device/module you want.
@@ -96,9 +98,56 @@ sudo ./install-wifi -c
 wpa_passphrase <network-SSID> <network-Password> > wpa.conf
 sudo mv wpa.conf /etc/wpa_supplicant.conf
 
-# use  -Dnl80211 or  -Dwext
+# use  -Dnl80211 or -Dwext
 sudo wpa_supplicant -B -iwlan0 -c/etc/wpa_supplicant.conf -Dnl80211
 sudo dhclient wlan0
+```
+
+Once you're happy with your WiFi configuration, then to make it automatically
+reconnect after boot-up edit the `/etc/network/interfaces`
+
+If you're using external WiFi USB dongle and this device is known as `wlan1`
+ then it should look more or less like this:
+```
+source-directory /etc/network/interfaces.d
+
+auto lo
+iface lo inet loopback
+
+iface eth0 inet manual
+
+auto wlan1
+allow-hotplug wlan1
+iface wlan1 inet manual
+    pre-up wpa_supplicant -B -D nl80211 -i wlan1 -c /etc/wpa_supplicant.conf
+    post-down killall -q wpa_supplicant
+iface default inet dhcp
+```
+
+If you prefer to use on-board WiFi card then
+
+```
+source-directory /etc/network/interfaces.d
+
+auto lo
+iface lo inet loopback
+
+iface eth0 inet manual
+
+auto wlan0
+allow-hotplug wlan0
+iface wlan0 inet manual
+    pre-up wpa_supplicant -B -D nl80211 -i wlan0 -c /etc/wpa_supplicant.conf
+    post-down killall -q wpa_supplicant
+iface default inet dhcp
+```
+
+You might need to restart the networking service or reboot to get it working.
+
+```
+sudo service networking restart
+# or
+sudo reboot
 ```
 
 #Dependencies
@@ -297,3 +346,42 @@ This will create a new service, which state you can manage with standard
 cd ~/git/PiFi-Remote
 sudo ./setup.py install
 ```
+
+
+# Change the default user name
+
+[Source](http://askubuntu.com/a/317008/551528)
+
+* Log in using your username and password
+* Set a password for the "root" account
+`sudo passwd root`
+* enable SSH logins for root user
+```
+sudo vi /etc/ssh/sshd_config
+```
+change `PermitRootLogin without-password` to `PermitRootLogin yes`
+* restart the `sshd` service `sudo service sshd restart`
+* Log out
+* Log in using the "root" account and the password you have previously set
+* Change the username and the home folder to the new name that you want
+`usermod -l <newname> -d /home/<newname> -m <oldname>`
+Change the group name to the new name that you want
+`groupmod -n <newgroup> <oldgroup>`
+Lock the "root" account `passwd -l root`
+* Disable SSH logins for root user
+```
+sudo vi /etc/ssh/sshd_config
+```
+and change `PermitRootLogin yes` to `PermitRootLogin no`
+* If you were using ecryptfs (encrypted home directory). Mount your encrypted directory using ecryptfs-recover-private and edit <mountpoint>/.ecryptfs/Private.mnt to reflect your new home directory.
+* Log out
+* Log back in as the new user
+
+
+
+# Change the device network name
+
+Edit the `/etc/hosts` and change `127.0.1.1	pi` to `127.0.1.1	your_new_amazing_network_name`
+Then edit the `/etc/hostname` and change `pi` to `your_new_amazing_network_name`
+Reboot.
+You Pi will be now accessible via `your_new_amazing_network_name` hostname :)
