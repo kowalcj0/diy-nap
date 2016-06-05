@@ -12,14 +12,22 @@ Hardware:
 * Custom build linear power supply with 4 outputs: 3x 5v 2A, 1x 9v 2a
 
 Software:
+* [Raspbian Jessie Lite](https://www.raspberrypi.org/downloads/raspbian/)
 * [MPD](https://www.musicpd.org/)
 * [ncmpcpp](http://rybczak.net/ncmpcpp/)
 * [C.A.V.A](http://karlstav.github.io/cava/)
 * [PiFi-Remote](https://github.com/kowalcj0/PiFi-Remote) a modified subset version of [pi.hifi](https://bitbucket.org/bertrandboichon/pi.hifi) by Bertrand Boichon
 
-btw. I've successfully used [volumio](https://volumio.org/) for a good while, 
+btw. I've successfully used [volumio](https://volumio.org/) for a good while,
 but I've decided to build something similar but with some extras.
 
+
+
+# Flash Raspbian Jessie lie
+
+```
+sudo ddrescue -D --force 2016-05-10-raspbian-jessie-lite.img /dev/mmcblk0
+```
 
 # Enable HiFiBerry DAC+ Pro
 
@@ -27,7 +35,7 @@ but I've decided to build something similar but with some extras.
 
 
 ## /boot/config.txt
-If you don't want to use your SD card reader then you will have to remount the 
+If you don't want to use your SD card reader then you will have to remount the
 `/boot` or `/flash` partition to `rw` mode.
 ```
 mount -o remount,rw /boot
@@ -45,12 +53,12 @@ dtoverlay=hifiberry-dacplus
 dtdebug=1
 ```
 
-If you don't want to remount that partion then simply use your SD card reader 
+If you don't want to remount that partion then simply use your SD card reader
 on your PC to edit that `config.txt` file
 
 
 ## /etc/asound.conf
-The next step is to enable the DAC for ALSA.  
+The next step is to enable the DAC for ALSA.
 Create `/etc/asound.conf` with this code:
 ```
 pcm.!default {
@@ -93,7 +101,7 @@ sudo /etc/init.d/kbd restart
 
 Follow this step if you don't want to use the onboard WiFi adapter.
 
-As instructed in the `Source` link download and extract the 
+As instructed in the `Source` link download and extract the
 `install-wifi` script by `MrEngman`.
 
 ```
@@ -117,7 +125,7 @@ sudo wpa_supplicant -B -iwlan0 -c/etc/wpa_supplicant.conf -Dnl80211
 sudo dhclient wlan0
 ```
 
-ps. if you're not using the on-board WiFi card then change `wlan0` to `wlan1` 
+ps. if you're not using the on-board WiFi card then change `wlan0` to `wlan1`
 or whatever name system assigned to it.
 
 Once you're happy with your WiFi configuration, then to make it automatically
@@ -244,7 +252,7 @@ cd ~/git/mpd
 			--enable-nfs --enable-cdio-paranoia  --enable-mms \
 			--enable-sqlite --enable-id3 --enable-libmpdclient \
 			--enable-systemd-daemon --enable-neighbor-plugins --enable-flac \
-			--enable-mpc --enable-wavpack --enable-lame-encoder --enable-alsa 
+			--enable-mpc --enable-wavpack --enable-lame-encoder --enable-alsa
 make
 sudo make install
 ```
@@ -262,10 +270,119 @@ sudo make install
 ```
 
 
+# MPD configuration
+
+This configuration file has 4 outputs defined:
+* alsa - to get the sound from from DAC
+* mp3 stream - so you can stream your music to your MPD client (ie. MPDroid)
+* flac stream - same as above but it will convert the currently playin track to FLAC
+* fifo - for ncmpcpp visualizer and/or C.A.V.A.
+
+```
+mdkir -p ~/mpd/playlists
+vim ~/.mpdconf
+
+music_directory     "/home/mpd/music"
+playlist_directory  "/home/mpd/.mpd/playlists"
+db_file             "/home/mpd/.mpd/database"
+log_file            "/home/mpd/.mpd/log"
+pid_file            "/home/mpd/.mpd/pid"
+state_file          "/home/mpd/.mpd/state"
+sticker_file        "/home/mpd/.mpd/sticker.sql"
+user                "mpd"
+zeroconf_enabled    "yes"
+zeroconf_name       "mpd"
+
+input {
+    plugin          "curl"
+}
+
+audio_output {
+    type            "alsa"
+    name            "HiFiBerry dac+ pro"
+    device          "hw:0,0"    # optional
+    mixer_type      "hardware"  # optional
+    mixer_control   "digital"   # optional
+}
+
+audio_output {
+    type            "httpd"
+    name            "mp3 HTTP Stream"
+    encoder         "lame"
+    port            "8000"
+    #quality        "5.0"           # do not define if bitrate is defined
+    bitrate         "320"           # do not define if quality is defined
+    #compression    "8"
+    format          "44100:16:2"
+    max_clients     "0"             # optional 0=no limit
+    tags            "yes"
+}
+
+audio_output {
+    type            "httpd"
+    name            "FLAC HTTP Stream"
+    encoder         "flac"
+    port            "9000"
+    format          "44100:16:2"
+    max_clients     "0"             # optional 0=no limit
+    tags            "yes"
+}
+
+audio_output {
+    type            "fifo"
+    name            "fifo"
+    path            "/tmp/mpd.fifo"
+    format          "44100:16:2"
+}
+
+playlist_plugin {
+    name            "soundcloud"
+    enabled         "true"
+    apikey          "your_soundclound_api_key"
+}
+```
+
+
+# ncmpcpp config
+
+```
+mpd_host = "127.0.0.1"
+mpd_port = "6600"
+mpd_connection_timeout = "5"
+mpd_crossfade_time = "5"
+
+visualizer_fifo_path = "/tmp/mpd.fifo"
+visualizer_output_name = "fifo"
+visualizer_type = "spectrum" (spectrum/frequency)
+visualizer_sync_interval = "10"
+visualizer_in_stereo = "yes"
+visualizer_look = "+|"
+
+now_playing_prefix = "$b"
+now_playing_suffix = "$/b"
+playlist_display_mode = "columns" (classic/columns)
+autocenter_mode = "yes"
+centered_cursor = "yes"
+
+song_status_format = "%t » %a »{ %b » }%y"
+progressbar_look = "━■"
+
+browser_playlist_prefix = "$2plist »$9 "
+browser_display_mode = "columns" (classic/columns)
+
+song_window_title_format = "{%a - }{%t}{ - %b{ Disc %d}}|{%f}"
+search_engine_display_mode = "columns" (classic/columns)
+follow_now_playing_lyrics = "yes"
+clock_display_seconds = "yes"
+display_bitrate = yes
+
+startup_screen = visualizer
+```
+
 
 # PiFi Remote
-If you want to add remote cotroller support to your RPi and you have for 
-example a [Flirc IR USB receiver](https://flirc.tv/more/flirc-usb) then follow 
+If you want to add remote cotroller support to your RPi and you have for
+example a [Flirc IR USB receiver](https://flirc.tv/more/flirc-usb) then follow
 the instructions below.
 
 ## Map your IR remote controller codes (buttons) to regular keyboard key presses
@@ -324,7 +441,7 @@ tail -f /var/log/pifi-remote.log
 Now let's get back to the 1st terminal and edit the key mappings
 `vim pifi/PiFiRemote.py`
 
-Press a button on you IR remote and observe the log. 
+Press a button on you IR remote and observe the log.
 You should see something like:
 ```
 2016-06-04 23:01:10,155 DEBUG mpd._write_command: Calling MPD close()
@@ -341,7 +458,7 @@ You should see something like:
 2016-06-04 23:01:13,187 DEBUG mpd._write_command: Calling MPD play(1,)
 2016-06-04 23:01:13,188 DEBUG mpd._write_command: Calling MPD close()
 2016-06-04 23:01:13,189 INFO mpd.disconnect: Calling MPD disconnect()
-2016-06-04 23:01:13,190 DEBUG PiFiRemote.monitorRemote: synchronization event at 1465081273.129032, SYN_REPORT 
+2016-06-04 23:01:13,190 DEBUG PiFiRemote.monitorRemote: synchronization event at 1465081273.129032, SYN_REPORT
 2016-06-04 23:01:13,257 DEBUG PiFiRemote.monitorRemote: event at 1465081273.257060, code 04, type 04, val 458827
 2016-06-04 23:01:13,969 DEBUG PiFiRemote.monitorRemote: key event at 1465081273.257060, 104 (KEY_PAGEUP), up
 2016-06-04 23:01:14,020 DEBUG PiFiRemote.monitorRemote: synchronization event at 1465081273.257060, SYN_REPORT
@@ -361,7 +478,7 @@ elif event.code == 104:
 ## Install PiFi-Remote service
 
 When you're happy with you button mapping then simply install the package.
-This will create a new service, which state you can manage with standard 
+This will create a new service, which state you can manage with standard
 `sudo service pifiremote start|stop|restart`
 
 ```
@@ -418,3 +535,40 @@ sudo vi /etc/ssh/sshd_config
 
 From now on, your Pi will be accessible via:
 `your_new_amazing_network_name.home` or `your_new_amazing_network_name.local` hostname :)
+
+
+# Console Autologin
+
+Change 4 occurences of username `pi` to `your_new_username` in `/usr/bin/raspi-config`
+
+I'll use `mpd` as my username
+
+```
+sudo vim /usr/bin/raspi-config
+
+#...
+"B2 Console Autologin" "Text console, automatically logged in as 'mpd' user" \
+#...
+"B4 Desktop Autologin" "Desktop GUI, automatically logged in as 'mpd' user" \
+#...
+sed /etc/inittab -i -e "s/1:2345:respawn:\/bin\/login -f mpd tty1 <\/dev\/tty1 >\/dev\/tty1 2>&1/1:2345:respawn:\/sbin\/getty --noclear 38400 tty1/"
+###...
+sed /etc/inittab -i -e "s/1:2345:respawn:\/sbin\/getty --noclear 38400 tty1/1:2345:respawn:\/bin\/login -f mpd tty1 <\/dev\/tty1 >\/dev\/tty1 2>&1/"
+```
+
+* Then launche the `raspi-config` as `root`
+* Choose option `3 Boot Options`
+* Choose option `B2 Console Autologin`
+
+Next time you're going to boot up your RPI it will automatically login as that user.
+
+# Start MPD and C.A.V.A on autologin
+
+I don't know why MPD didn't register itself as a new system service, so to start it up
+on login simply modify your `.profile`
+```
+vim ~/.profile
+mpd; wait
+
+cava
+```
