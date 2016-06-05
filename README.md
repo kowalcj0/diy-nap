@@ -25,38 +25,51 @@ but I've decided to build something similar but with some extras.
 
 [Source](https://www.hifiberry.com/guides/configuring-the-sound-card-in-openelec-with-device-tree-overlays/)
 
+
+## /boot/config.txt
+If you don't want to use your SD card reader then you will have to remount the 
+`/boot` or `/flash` partition to `rw` mode.
+```
+mount -o remount,rw /boot
+```
+or on some distros
+```
+mount -o remount,rw /flash
 ```
 
-# either you will have to remount the /boot partition to rw mode
-mount -o remount,rw /boot
-# or on some distros
-mount -o remount,rw /flash
+And then append this to: `/boot/config.txt` or `/flash/config.txt`
 
-# and then append this to: `/boot/config.txt` or `/flash/config.txt`
-
+```
 ## enable DAC+ standard/pro
 dtoverlay=hifiberry-dacplus
 dtdebug=1
-# or simply user your SD card reader on your PC to edit that file
+```
+
+If you don't want to remount that partion then simply use your SD card reader 
+on your PC to edit that `config.txt` file
 
 
-# enable the card for ALSA
-# create /etc/asound.conf with this code:
+## /etc/asound.conf
+The next step is to enable the DAC for ALSA.  
+Create `/etc/asound.conf` with this code:
+```
 pcm.!default {
 type hw card 0
 }
 ctl.!default {
 type hw card 0
 }
+```
 
-
-# blacklist onboard audio (this will disable it)
+## Disable on-board audio
+Lastly, you can disable on-board audio:
+```
 sudo vim /etc/modprobe.d/raspi-blacklist.conf
 blacklist snd_bcm2835
-
-# you can also blacklist any other device/module you want.
-# simply use names listed with `lsmod` command
 ```
+
+You can also blacklist any other device/module you want.
+Simply use the module names listed with `lsmod` command
 
 
 #Disable terminal/screen blanking
@@ -76,11 +89,12 @@ sudo /etc/init.d/kbd restart
 
 # Get WiFi driver
 
-Follow this step if you want to use different WiFi adapter that the onboard one.
-
 [Source](https://www.raspberrypi.org/forums/viewtopic.php?f=28&t=102323&p=782878)
 
-As instructed download the `install-wifi` script by `MrEngman`.
+Follow this step if you don't want to use the onboard WiFi adapter.
+
+As instructed in the `Source` link download and extract the 
+`install-wifi` script by `MrEngman`.
 
 ```
 # detect the device and check if driver is available
@@ -102,6 +116,9 @@ sudo mv wpa.conf /etc/wpa_supplicant.conf
 sudo wpa_supplicant -B -iwlan0 -c/etc/wpa_supplicant.conf -Dnl80211
 sudo dhclient wlan0
 ```
+
+ps. if you're not using the on-board WiFi card then change `wlan0` to `wlan1` 
+or whatever name system assigned to it.
 
 Once you're happy with your WiFi configuration, then to make it automatically
 reconnect after boot-up edit the `/etc/network/interfaces`
@@ -150,7 +167,7 @@ sudo service networking restart
 sudo reboot
 ```
 
-#Dependencies
+# MPD, ncmpcpp & C.A.V.A Dependencies
 
 This is going to download around 1.5GB of packages so go for a lunch.
 
@@ -197,6 +214,8 @@ git clone https://github.com/taglib/taglib.git --depth=1
 ```
 
 # TagLib
+
+Taglib is required by `ncmpcpp` and it's not available via `apt-get install` :(
 
 ```
 cd ~/git/taglib
@@ -246,9 +265,12 @@ sudo make install
 
 # PiFi Remote
 If you want to add remote cotroller support to your RPi and you have for 
-example a [Flirc IR USB receiver](https://flirc.tv/more/flirc-usb)
+example a [Flirc IR USB receiver](https://flirc.tv/more/flirc-usb) then follow 
+the instructions below.
 
 ## Map your IR remote controller codes (buttons) to regular keyboard key presses
+
+Get the `flirc_util` for RPi and record the button mappings
 
 ```
 wget https://flirc.tv/software/release/gui/linux/Linux_Release.zip
@@ -279,7 +301,7 @@ sudo ./flirc_util record r
 sudo ./flirc_util record x
 ```
 
-Then install missing Python packages and clone the PiFi-Remote repo
+Then install required Python packages and clone the PiFi-Remote repo
 
 ```
 sudo apt-get install python-pip evdev python-mpd2
@@ -358,30 +380,41 @@ sudo ./setup.py install
 * enable SSH logins for root user
 ```
 sudo vi /etc/ssh/sshd_config
+# change `PermitRootLogin without-password` to `PermitRootLogin yes`
 ```
-change `PermitRootLogin without-password` to `PermitRootLogin yes`
-* restart the `sshd` service `sudo service sshd restart`
+* Restart the `sshd` service
+```
+sudo service sshd restart
+```
 * Log out
 * Log in using the "root" account and the password you have previously set
 * Change the username and the home folder to the new name that you want
-`usermod -l <newname> -d /home/<newname> -m <oldname>`
-Change the group name to the new name that you want
-`groupmod -n <newgroup> <oldgroup>`
-Lock the "root" account `passwd -l root`
+```
+usermod -l <newname> -d /home/<newname> -m <oldname>
+```
+* Change the group name to the new name that you want
+```
+groupmod -n <newgroup> <oldgroup>
+```
+* Lock the "root" account
+```
+passwd -l root
+```
 * Disable SSH logins for root user
 ```
 sudo vi /etc/ssh/sshd_config
+# change `PermitRootLogin yes` to `PermitRootLogin no`
 ```
-and change `PermitRootLogin yes` to `PermitRootLogin no`
-* If you were using ecryptfs (encrypted home directory). Mount your encrypted directory using ecryptfs-recover-private and edit <mountpoint>/.ecryptfs/Private.mnt to reflect your new home directory.
+* If you were using ecryptfs (encrypted home directory). Mount your encrypted directory using ecryptfs-recover-private and edit `<mountpoint>/.ecryptfs/Private.mnt` to reflect your new home directory.
 * Log out
 * Log back in as the new user
 
 
-
 # Change the device network name
 
-Edit the `/etc/hosts` and change `127.0.1.1	pi` to `127.0.1.1	your_new_amazing_network_name`
-Then edit the `/etc/hostname` and change `pi` to `your_new_amazing_network_name`
-Reboot.
-You Pi will be now accessible via `your_new_amazing_network_name` hostname :)
+* Edit the `/etc/hosts` and change `127.0.1.1	pi` to `127.0.1.1	your_new_amazing_network_name`
+* Then edit the `/etc/hostname` and change `pi` to `your_new_amazing_network_name`
+* Reboot
+
+From now on, your Pi will be accessible via:
+`your_new_amazing_network_name.home` or `your_new_amazing_network_name.local` hostname :)
