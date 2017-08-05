@@ -1,6 +1,8 @@
 DIY Audio Network Player
 ------------------------
 
+![colors in C.A.V.A.][anp.gif]
+
 This document contains a list of instructions I followed to configure my ANP.
 
 Hardware:
