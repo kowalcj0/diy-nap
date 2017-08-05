@@ -1,4 +1,4 @@
-DIY Audio Network Player
+DIY Network Audio Player
 ------------------------
 
 ![colors in C.A.V.A.](https://github.com/kowalcj0/diy-anp/raw/master/anp.gif "colors in C.A.V.A.")
