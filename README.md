@@ -1,7 +1,7 @@
 DIY Audio Network Player
 ------------------------
 
-![colors in C.A.V.A.][https://github.com/kowalcj0/diy-anp/raw/master/anp.gif]
+![colors in C.A.V.A.](https://github.com/kowalcj0/diy-anp/raw/master/anp.gif "colors in C.A.V.A.")
 
 This document contains a list of instructions I followed to configure my ANP.
 
