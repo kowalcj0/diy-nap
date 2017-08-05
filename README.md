@@ -25,6 +25,20 @@ btw. I've successfully used [volumio](https://volumio.org/) for a good while,
 but I've decided to build something similar but with some extras.
 
 
+![N.A.P. 1](https://github.com/kowalcj0/diy-anp/raw/master/nap-01.jpg "N.A.P. 1")
+![N.A.P. 2](https://github.com/kowalcj0/diy-anp/raw/master/nap-02.jpg "N.A.P. 2")
+![N.A.P. 3](https://github.com/kowalcj0/diy-anp/raw/master/nap-03.jpg "N.A.P. 3")
+![N.A.P. 4](https://github.com/kowalcj0/diy-anp/raw/master/nap-04.jpg "N.A.P. 4")
+![N.A.P. 5](https://github.com/kowalcj0/diy-anp/raw/master/nap-05.jpg "N.A.P. 5")
+![N.A.P. 6](https://github.com/kowalcj0/diy-anp/raw/master/nap-06.jpg "N.A.P. 6")
+![N.A.P. 7](https://github.com/kowalcj0/diy-anp/raw/master/nap-07.jpg "N.A.P. 7")
+![N.A.P. 8](https://github.com/kowalcj0/diy-anp/raw/master/nap-08.jpg "N.A.P. 8")
+![N.A.P. 9](https://github.com/kowalcj0/diy-anp/raw/master/nap-09.jpg "N.A.P. 9")
+![N.A.P. 10](https://github.com/kowalcj0/diy-anp/raw/master/nap-10.jpg "N.A.P. 10")
+![N.A.P. 11](https://github.com/kowalcj0/diy-anp/raw/master/nap-11.jpg "N.A.P. 11")
+![N.A.P. 12](https://github.com/kowalcj0/diy-anp/raw/master/nap-12.jpg "N.A.P. 12")
+![N.A.P. 13](https://github.com/kowalcj0/diy-anp/raw/master/nap-13.jpg "N.A.P. 13")
+![N.A.P. 14](https://github.com/kowalcj0/diy-anp/raw/master/nap-14.jpg "N.A.P. 14")
 
 # Flash Raspbian Jessie lie
 
